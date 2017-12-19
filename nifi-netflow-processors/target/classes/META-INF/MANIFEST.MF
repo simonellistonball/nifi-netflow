@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Implementation-Title: nifi-netflow-processors
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: sball
+Specification-Vendor: Apache NiFi Project
+Specification-Title: nifi-netflow-processors
+Implementation-Vendor-Id: com.simonellistonball.nifi.processors
+Build-Jdk: 1.8.0_91
+Specification-Version: 0.0.1-SNAPSHOT
+Created-By: Maven Integration for Eclipse
+Implementation-Vendor: Apache NiFi Project
+
