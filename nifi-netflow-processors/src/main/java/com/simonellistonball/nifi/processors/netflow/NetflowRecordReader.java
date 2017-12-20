@@ -35,15 +35,11 @@ import org.apache.nifi.serialization.record.Record;
 import org.apache.nifi.serialization.record.RecordSchema;
 
 /**
- * 
  * Assumes that the inbound flow file contains a single netflow packet, which
- * may represent a large number of records.
- * 
- * This implementation processes as entire netflow packet as a single unit, and
- * as such is not a reusable reader.
+ * may represent a large number of records. This implementation processes as
+ * entire netflow packet as a single unit, and as such is not a reusable reader.
  * 
  * @author sball
- *
  */
 public class NetflowRecordReader implements RecordReader {
     private final DataInputStream dis;
