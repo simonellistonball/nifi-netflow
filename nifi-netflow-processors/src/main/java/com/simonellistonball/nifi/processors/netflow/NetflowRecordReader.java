@@ -38,7 +38,7 @@ import org.apache.nifi.serialization.record.RecordSchema;
  * Assumes that the inbound flow file contains a single netflow packet, which
  * may represent a large number of records. This implementation processes as
  * entire netflow packet as a single unit, and as such is not a reusable reader.
- * 
+ *
  * @author sball
  */
 public class NetflowRecordReader implements RecordReader {
@@ -128,7 +128,7 @@ public class NetflowRecordReader implements RecordReader {
         /**
          * Return the name of the field, which is used to translate field numbers into
          * human readable names.
-         * 
+         *
          * @return String name of the field
          */
         public String getName() {
