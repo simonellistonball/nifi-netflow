@@ -45,6 +45,4 @@ before_install:
 
 install:
   - mvn -q -T 2C -DskipTests=true -Pdir-only clean install
-
-
   - mvn -Pcontrib-check verify

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.simonellistonball.nifi.processors.netflow;
+package org.apache.nifi.netflow;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,6 +59,7 @@ public class NetflowReader extends AbstractControllerService implements RecordRe
     @Override
     public RecordReader createRecordReader(Map<String, String> flowFile, InputStream in, ComponentLog logger)
             throws MalformedRecordException, IOException, SchemaNotFoundException {
+        
         final RecordSchema schema = null;
         return new NetflowRecordReader(in, schema, logger);
     }
