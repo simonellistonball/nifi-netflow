@@ -59,7 +59,6 @@ public class NetflowReader extends AbstractControllerService implements RecordRe
     @Override
     public RecordReader createRecordReader(Map<String, String> flowFile, InputStream in, ComponentLog logger)
             throws MalformedRecordException, IOException, SchemaNotFoundException {
-        
         final RecordSchema schema = null;
         return new NetflowRecordReader(in, schema, logger);
     }

@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.netflow.NetflowParser.NetflowRecord;
@@ -44,7 +42,6 @@ public class NetflowRecordReader implements RecordReader {
     private final RecordSchema schema;
     private final ComponentLog logger;
     private final NetflowParser parser;
-    
     private ComponentLog getLogger() {
         return logger;
     }

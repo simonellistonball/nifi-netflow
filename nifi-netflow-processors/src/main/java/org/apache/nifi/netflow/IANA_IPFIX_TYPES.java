@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.nifi.netflow;
 
 import java.net.Inet4Address;
@@ -9,17 +25,33 @@ import java.nio.charset.Charset;
 public enum IANA_IPFIX_TYPES {
     BOOLEAN,
     // numbers, not floating points are handled as a special case
-    unsigned64(8, true), unsigned32(4, true), unsigned16(2, true), unsigned8(1, true), signed64(8, false), signed32(4,
-            false), signed16(2, false), signed8(1, false), float64, float32,
+    unsigned64(8, true),
+    unsigned32(4, true),
+    unsigned16(2, true),
+    unsigned8(1, true),
+    signed64(8, false),
+    signed32(4, false),
+    signed16(2, false),
+    signed8(1, false),
+    float64,
+    float32,
     // strings and special types that get special treatment
-    string, octetArray, ipv4Address, ipv6Address, macAddress,
+    string,
+    octetArray,
+    ipv4Address,
+    ipv6Address,
+    macAddress,
     // date and time related, which are treated as a number
-    dateTimeSeconds(4, true, true), dateTimeMilliseconds(8, true, true), dateTimeMicroseconds(8, true,
-            true), dateTimeNanoseconds(8, true, true),
+    dateTimeSeconds(4, true, true),
+    dateTimeMilliseconds(8, true, true),
+    dateTimeMicroseconds(8, true, true),
+    dateTimeNanoseconds(8, true, true),
     // only here as a holder for compatibility
     Netflow9,
     // extended structures
-    basicList, subTemplateList, subTemplateMultiList;
+    basicList,
+    subTemplateList,
+    subTemplateMultiList;
 
     private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
@@ -34,8 +66,8 @@ public enum IANA_IPFIX_TYPES {
 
     /**
      * Build a string representation of the byte array
-     * 
-     * @throws UnknownHostException
+     *
+     * @throws UnknownHostException if a bad IP address is passed
      */
     public String convertToString(byte[] dst, int len) {
         if (this == ipv4Address) {
@@ -107,15 +139,15 @@ public enum IANA_IPFIX_TYPES {
 
     private IANA_IPFIX_TYPES() {
     }
-    
-    public boolean isInteger() { 
+
+    public boolean isInteger() {
         return !date && bytes != 0;
     }
-    
+
     public boolean isFloat() {
         return this == float32 || this == float64;
     }
-    
+
     public boolean isDate() {
         return date;
     }
