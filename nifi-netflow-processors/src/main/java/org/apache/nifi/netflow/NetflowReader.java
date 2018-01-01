@@ -16,6 +16,8 @@
  */
 package org.apache.nifi.netflow;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,7 +34,6 @@ import org.apache.nifi.schema.access.SchemaNotFoundException;
 import org.apache.nifi.serialization.MalformedRecordException;
 import org.apache.nifi.serialization.RecordReader;
 import org.apache.nifi.serialization.RecordReaderFactory;
-import org.apache.nifi.serialization.record.RecordSchema;
 
 @Tags({ "netflow", "networking", "listen", "metron", "record", "ipfix" })
 @CapabilityDescription("Reads packets in Cisco Netflow 5, 9 and IPFIX formats and outputs a Record representation")
@@ -48,6 +49,7 @@ public class NetflowReader extends AbstractControllerService implements RecordRe
             .displayName("Netflow Version").description("Which version of netflow should the reader parse?")
             .allowableValues(NETFLOW_5, NETFLOW_9, IPFIX, NETFLOW_ANY).defaultValue(NETFLOW_ANY.getValue())
             .required(true).build();
+    private NetflowParser parser;
 
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
@@ -56,11 +58,18 @@ public class NetflowReader extends AbstractControllerService implements RecordRe
         return properties;
     }
 
+    public NetflowReader() {
+        this.parser = new NetflowParser();
+    }
+
     @Override
     public RecordReader createRecordReader(Map<String, String> flowFile, InputStream in, ComponentLog logger)
             throws MalformedRecordException, IOException, SchemaNotFoundException {
-        final RecordSchema schema = null;
-        return new NetflowRecordReader(in, schema, logger);
+        // parser is owned by the factory to keep templates consistent across packets
+        parser.setStream(new DataInputStream(new BufferedInputStream(in)));
+        //parser.setSourceId(flowFile.get("udp.sender").hashCode());
+        parser.setSourceId(0);
+        return new NetflowRecordReader(logger, parser);
     }
 
 }

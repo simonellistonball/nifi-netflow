@@ -19,6 +19,7 @@ package org.apache.nifi.netflow;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,8 +56,10 @@ public class NetflowReaderTest {
         assertEquals("62.75.195.236", record.getAsString("destinationIPv4Address"));
     }
 
-    private NetflowRecordReader createReader(InputStream is, RecordSchema schema) {
-        return new NetflowRecordReader(is, schema, logger);
+    private NetflowRecordReader createReader(InputStream is, RecordSchema schema) throws IOException {
+        NetflowParser parser = new NetflowParser();
+        parser.setStream(new DataInputStream(is));
+        return new NetflowRecordReader(logger, parser);
     }
 
 }

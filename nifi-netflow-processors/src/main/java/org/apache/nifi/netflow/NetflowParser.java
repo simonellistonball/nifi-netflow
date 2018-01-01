@@ -16,15 +16,18 @@
  */
 package org.apache.nifi.netflow;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -48,17 +51,21 @@ public class NetflowParser {
         public int en;
 
         public String getName() {
+            if (this.en != 0) {
+                return IANA_IPFIX.fromCode(type).name() + "_" + String.valueOf(this.en);
+            }
             return IANA_IPFIX.fromCode(type).name();
         }
 
         @Override
         public String toString() {
-            return String.format("Field [name=%s, type=%d, en=%d, length=%d]", new Object[] { getName(), type, en, length });
+            return String.format("Field [name=%s, type=%d, en=%d, length=%d]",
+                    new Object[] { getName(), type, en, length });
         }
 
         public String convertToString(byte[] dst) {
-           IANA_IPFIX iana = IANA_IPFIX.fromCode(type);
-           return iana.getType().convertToString(dst, length);
+            IANA_IPFIX iana = IANA_IPFIX.fromCode(type);
+            return iana.getType().convertToString(dst, length);
         }
     }
 
@@ -81,29 +88,38 @@ public class NetflowParser {
     }
 
     public class NetflowTemplateKey {
-        public NetflowTemplateKey(int sessionId, int domainId, int templateId) {
-            this.sessionId = sessionId;
-            this.sourceId = domainId;
+        public NetflowTemplateKey(int sourceId, int domainId, int templateId) {
+            this.sourceId = sourceId;
+            this.domainId = domainId;
             this.id = templateId;
         }
 
-        public int sessionId;
+        /**
+         * The device sending the flow
+         */
         public int sourceId;
+        /**
+         * Observation domain id in IPFIX protocol
+         */
+        public int domainId;
+        /**
+         * The template identifier
+         */
         public int id;
 
         @Override
         public String toString() {
-            return String.format("NetflowTemplateKey [sessionId=%x, sourceId=%x, id=%x]",
-                    new Object[] { sessionId, sourceId, id });
+            return String.format("NetflowTemplateKey [sourceId=%x, domainId=%x, id=%x]",
+                    new Object[] { sourceId, domainId, id });
         }
 
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + getOuterType().hashCode();
+            // result = prime * result + getOuterType().hashCode();
             result = prime * result + id;
-            result = prime * result + sessionId;
+            result = prime * result + domainId;
             result = prime * result + sourceId;
             return result;
         }
@@ -121,7 +137,7 @@ public class NetflowParser {
                 return false;
             if (id != other.id)
                 return false;
-            if (sessionId != other.sessionId)
+            if (domainId != other.domainId)
                 return false;
             if (sourceId != other.sourceId)
                 return false;
@@ -135,29 +151,47 @@ public class NetflowParser {
 
     public class NetflowRecord extends HashMap<String, String> implements Map<String, String> {
         private static final long serialVersionUID = 1L;
+        private NetflowTemplate template;
+
+        public NetflowTemplate getTemplate() {
+            return template;
+        }
+
+        public void setTemplate(NetflowTemplate template) {
+            this.template = template;
+        }
     }
 
-    private DataInputStream s;
-    private Map<NetflowTemplateKey, NetflowTemplate> templates = new HashMap<NetflowTemplateKey, NetflowTemplate>();
-    private Queue<NetflowRecord> records = new ConcurrentLinkedQueue<NetflowRecord>();
+    private DataInputStream ins;
+    private ConcurrentHashMap<NetflowTemplateKey, NetflowTemplate> templates = new ConcurrentHashMap<NetflowTemplateKey, NetflowTemplate>();
+    private ConcurrentLinkedQueue<NetflowRecord> records = new ConcurrentLinkedQueue<NetflowRecord>();
+    private ConcurrentLinkedQueue<byte[]> readyToReRun = new ConcurrentLinkedQueue<byte[]>();
+    private ConcurrentHashMap<NetflowTemplateKey, Queue<byte[]>> heldSets = new ConcurrentHashMap<NetflowTemplateKey, Queue<byte[]>>();
 
-    private int fileLength;
+    // private int fileLength;
     private int exportTime;
     private int sequenceNumber;
     private int domainId;
+    private int sourceId;
 
-    public NetflowParser(DataInputStream s) {
+    public NetflowParser() {
         super();
-        this.s = s;
     }
 
-    public void parse() throws IOException {
-        while (s.available() > 0) {
-            processHeader();
+    public void setStream(DataInputStream s) throws IOException {
+        if (this.ins != null) {
+            this.ins.close();
+        }
+        this.ins = s;
+    }
+
+    private void parseStream(DataInputStream s) throws IOException {
+        while (s.available() > 4) {
+            int fileLength = processHeader(s);
             // check this offset calculation to ensure if matches the right header overhead
-            int processed = 8;
+            int processed = 16;
             while (processed < fileLength) {
-                processed += processSet();
+                processed += processSet(s);
                 logger.debug(String.format("Finished set, processed = %d of fileLength = %d",
                         new Object[] { processed, fileLength }));
             }
@@ -166,24 +200,46 @@ public class NetflowParser {
         }
     }
 
-    private void processHeader() throws IOException {
+    public void parse() throws IOException {
+        if (ins == null) {
+            throw new IOException("No stream attached to parser");
+        } else {
+            parseStream(ins);
+        }
+        // process any packets which have been delayed, but can now be processed because
+        // their templates are available.
+        rerun();
+    }
+
+    private void rerun() throws IOException {
+        byte[] replay;
+        replay = readyToReRun.poll();
+        while (replay != null) {
+            DataInputStream s = new DataInputStream(new ByteArrayInputStream(replay));
+            parseStream(s);
+            replay = readyToReRun.poll();
+        }
+    }
+
+    private int processHeader(DataInputStream s) throws IOException {
         int version = s.readUnsignedShort();
         if (version != 10) {
             throw new IOException("Invalid file version");
         }
-        fileLength = s.readUnsignedShort();
+        int fileLength = s.readUnsignedShort();
         exportTime = s.readInt();
         sequenceNumber = s.readInt();
         domainId = s.readInt();
 
         logger.debug(String.format("Message Headers %d bytes at %d sequence=%d, domain=%d",
                 new Object[] { fileLength, exportTime, sequenceNumber, domainId }));
+        return fileLength;
     }
 
     /**
      * @return number of bytes processed
      */
-    private int processSet() throws IOException {
+    private int processSet(DataInputStream s) throws IOException {
         int setId = s.readUnsignedShort();
         int length = s.readUnsignedShort();
 
@@ -192,19 +248,44 @@ public class NetflowParser {
         // what type of record are we dealing with?
         if (setId == 2) {
             // regular template
-            bytes = processTemplate(length, false);
+            bytes = processTemplate(s, length, false);
         } else if (setId == 3) {
             // option template
-            bytes = processTemplate(length, true);
+            bytes = processTemplate(s, length, true);
         } else if (setId > 255) {
             // data packet
-            NetflowTemplate template = templates.get(new NetflowTemplateKey(sequenceNumber, domainId, setId));
+            NetflowTemplateKey key = new NetflowTemplateKey(sourceId, domainId, setId);
+            NetflowTemplate template = templates.get(key);
             if (template == null) {
-                s.skip(length);
-                logger.error(String.format("Missing template %x", new Object[] { setId }));
+                logger.error(String.format("Missing template: %s", new Object[] { key }));
+                // Save the set for later by constructing an IPFIX packet for replay
+                byte[] replayBytes = new byte[length + 16 + 4];
+                ByteBuffer bb = ByteBuffer.wrap(replayBytes);
+                bb.put((byte) 0x00);
+                bb.put((byte) 0x0a);
+                bb.putShort((short) (length + 16 + 4));
+                bb.putInt(exportTime);
+                bb.putInt(sequenceNumber);
+                bb.putInt(domainId);
+
+                bb.putShort((short) setId);
+                bb.putShort((short) length);
+
+                byte[] setBytes = new byte[length];
+                s.read(setBytes, 0, length);
+                bb.put(setBytes);
+
+                // store the packet to re-process based on arrival of a template for the given
+                // domain and template id
+                if (!heldSets.containsKey(key)) {
+                    heldSets.put(key, new ConcurrentLinkedQueue<byte[]>());
+                }
+                heldSets.get(key).add(bb.array());
+                logger.debug(String.format("Holding set for template %x (%d bytes)",
+                        new Object[] { setId, bb.array().length }));
             } else {
                 logger.debug(String.format("Using template %s", new Object[] { template.toString() }));
-                bytes = processDataRecord(template, length);
+                bytes = processDataRecord(s, template, length);
             }
         } else {
             // strange packet, log content
@@ -220,7 +301,7 @@ public class NetflowParser {
         return length + 4;
     }
 
-    private int processTemplate(int length, boolean option) throws IOException {
+    private int processTemplate(DataInputStream s, int length, boolean option) throws IOException {
         int bytesProcessed = 4;
         while (bytesProcessed < length) {
             int templateId = s.readUnsignedShort();
@@ -231,14 +312,14 @@ public class NetflowParser {
                 scopeFieldCount = s.readUnsignedShort();
                 bytesProcessed += 2;
             }
-            NetflowTemplateKey key = new NetflowTemplateKey(sequenceNumber, domainId, templateId);
+            NetflowTemplateKey key = new NetflowTemplateKey(sourceId, domainId, templateId);
             if (fieldCount == 0 && this.templates.containsKey(key)) {
                 // template withdrawn
                 this.templates.remove(key);
             } else {
                 NetflowTemplate template = new NetflowTemplate(key);
                 for (int i = 0, l = fieldCount; i < l; i++) {
-                    NetflowField field = processField();
+                    NetflowField field = processField(s);
                     template.add(field);
                     bytesProcessed += 4;
                     if (field.en != 0) {
@@ -255,12 +336,22 @@ public class NetflowParser {
                     }
                 }
                 this.templates.put(key, template);
+                // check for any saved packets that can now be reprocessed
+                logger.debug(
+                        String.format("Checking heldsets (%d) key: %s", new Object[] { this.heldSets.size(), key }));
+
+                if (this.heldSets.containsKey(key)) {
+                    logger.debug(String.format("Re-running held datasets for template %s", new Object[] { key }));
+                    this.readyToReRun.addAll(this.heldSets.get(key));
+                    this.heldSets.remove(key);
+                    rerun();
+                }
             }
         }
         return bytesProcessed;
     }
 
-    private NetflowField processField() throws IOException {
+    private NetflowField processField(DataInputStream s) throws IOException {
         int type = s.readUnsignedShort();
         int len = s.readUnsignedShort();
         int en = 0;
@@ -270,10 +361,11 @@ public class NetflowParser {
         return new NetflowField((type & 0x7FFF), len, en);
     }
 
-    private int processDataRecord(NetflowTemplate template, int length) throws IOException {
+    private int processDataRecord(DataInputStream s, NetflowTemplate template, int length) throws IOException {
         int bytesProcessed = 4;
         while (bytesProcessed < length) {
             NetflowRecord record = new NetflowRecord();
+            record.setTemplate(template);
             for (NetflowField item : template.fields) {
                 int fieldLength = item.length;
                 if (fieldLength == 65535) {
@@ -285,7 +377,8 @@ public class NetflowParser {
                         bytesProcessed += 2;
                     }
                     bytesProcessed += 1;
-                    logger.debug(String.format("Custom length found %d of type %d", new Object[] { fieldLength, item.type }));
+                    logger.debug(String.format("Custom length found %d of type %d",
+                            new Object[] { fieldLength, item.type }));
                 }
                 byte[] dst = new byte[fieldLength];
                 s.read(dst, 0, fieldLength);
@@ -293,7 +386,8 @@ public class NetflowParser {
                 record.put(item.getName(), item.convertToString(dst));
             }
             this.records.add(record);
-            logger.debug(String.format("Flow Record (template=%x, length=%d, bytes=%d)", new Object[] { template.key.id, length, bytesProcessed }));
+            logger.debug(String.format("Flow Record (template=%x, length=%d, bytes=%d)",
+                    new Object[] { template.key.id, length, bytesProcessed }));
             logger.debug(record.toString());
         }
         return bytesProcessed;
@@ -309,15 +403,27 @@ public class NetflowParser {
 
     /**
      * Build a list of all known fields in the templates
+     * 
      * @return Set of all the field identifiers across all templates
      */
     public Set<Integer> getAllKnownFields() {
-        Set<Integer> fieldTypes = this.templates.values().stream().flatMap(x->x.fields.stream().map(f -> f.type)).collect(Collectors.toSet());
+        Set<Integer> fieldTypes = this.templates.values().stream().flatMap(x -> x.fields.stream().map(f -> f.type))
+                .collect(Collectors.toSet());
         return fieldTypes;
     }
 
     public void close() throws IOException {
-        this.s.close();
+        this.ins.close();
+    }
+
+    public Set<String> getAllKnownFieldsTypes() {
+        // get every field, and convert to name
+        return this.templates.values().stream().map(t -> t.fields).flatMap(List::stream).map(f -> f.getName())
+                .collect(Collectors.toSet());
+    }
+
+    public void setSourceId(int sourceId) {
+        this.sourceId = sourceId;
     }
 
 }
