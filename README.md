@@ -19,3 +19,7 @@ This is a WIP (i.e. it does not work)
 
 The bundle will contain NiFi processors to consume and Parse Netflow 9 including options and templates
 
+##Known Issues:
+
+If you reeceive a packet which only consists of templates, which is reaonsably common, it will lead to the flow file being sent to parse.failure, since no actual flow records are emitted. Fixing this requires some upstream changes in the record reader api to allow flow files with no records to be ignored. 
+
