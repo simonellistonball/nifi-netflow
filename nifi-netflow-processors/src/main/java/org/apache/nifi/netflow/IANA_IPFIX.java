@@ -477,7 +477,7 @@ public enum IANA_IPFIX {
     private IANA_IPFIX(final int ianaCode, final IANA_IPFIX_TYPES type) {
         this.ianaCode = ianaCode;
         this.type = type;
-    };
+    }
 
     private static final Map<Integer, IANA_IPFIX> index = new HashMap<>();
 

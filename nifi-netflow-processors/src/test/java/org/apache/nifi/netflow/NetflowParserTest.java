@@ -17,7 +17,6 @@
 package org.apache.nifi.netflow;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
@@ -85,7 +84,7 @@ public class NetflowParserTest {
         bb.putShort((short) 0x0002);
         // length
         bb.putShort(length);
-        // template id 
+        // template id
         bb.putShort(id);
         // field count
         bb.putShort((short) 1);
@@ -126,7 +125,7 @@ public class NetflowParserTest {
         assertEquals(1, parser.getTemplates().size());
         assertNotNull(parser.getRecords());
         assertEquals(1, parser.getRecords().size());
-        
+
         Field field = NetflowParser.class.getDeclaredField("readyToReRun");
         field.setAccessible(true);
         Object object = field.get(parser);

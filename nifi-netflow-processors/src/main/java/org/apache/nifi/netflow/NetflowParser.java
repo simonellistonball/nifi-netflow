@@ -403,7 +403,7 @@ public class NetflowParser {
 
     /**
      * Build a list of all known fields in the templates
-     * 
+     *
      * @return Set of all the field identifiers across all templates
      */
     public Set<Integer> getAllKnownFields() {
