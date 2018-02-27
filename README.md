@@ -41,4 +41,4 @@ The reader provides a record reader service which is intended to be used with th
 
 ![Sample Flow](flow.png)
 
-The template included in the root of this repo provides an example, but may need some rewiring for your build.
+The template included in the root of this repo provides an example, but may need some rewiring for your build. The template also uses unusual ports (I was testing) so you're likely to need to change the listening port to something like 2055 which is a more common Netflow port.
