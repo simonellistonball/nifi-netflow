@@ -1,0 +1,641 @@
+<?xml version="1.0" ?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<template encoding-version="1.1">
+  <description></description>
+  <groupId>81761a3e-0160-1000-f20f-85ae81382447</groupId>
+  <name>Netflow Sample</name>
+  <snippet>
+    <controllerServices>
+      <id>d852b6ce-9ce7-3fde-0000-000000000000</id>
+      <parentGroupId>a639830c-0b19-37f0-0000-000000000000</parentGroupId>
+      <bundle>
+        <artifact>nifi-record-serialization-services-nar</artifact>
+        <group>org.apache.nifi</group>
+        <version>1.4.0</version>
+      </bundle>
+      <comments></comments>
+      <descriptors>
+        <entry>
+          <key>Schema Write Strategy</key>
+          <value>
+            <name>Schema Write Strategy</name>
+          </value>
+        </entry>
+        <entry>
+          <key>schema-access-strategy</key>
+          <value>
+            <name>schema-access-strategy</name>
+          </value>
+        </entry>
+        <entry>
+          <key>schema-registry</key>
+          <value>
+            <identifiesControllerService>org.apache.nifi.schemaregistry.services.SchemaRegistry</identifiesControllerService>
+            <name>schema-registry</name>
+          </value>
+        </entry>
+        <entry>
+          <key>schema-name</key>
+          <value>
+            <name>schema-name</name>
+          </value>
+        </entry>
+        <entry>
+          <key>schema-text</key>
+          <value>
+            <name>schema-text</name>
+          </value>
+        </entry>
+        <entry>
+          <key>Date Format</key>
+          <value>
+            <name>Date Format</name>
+          </value>
+        </entry>
+        <entry>
+          <key>Time Format</key>
+          <value>
+            <name>Time Format</name>
+          </value>
+        </entry>
+        <entry>
+          <key>Timestamp Format</key>
+          <value>
+            <name>Timestamp Format</name>
+          </value>
+        </entry>
+        <entry>
+          <key>Pretty Print JSON</key>
+          <value>
+            <name>Pretty Print JSON</name>
+          </value>
+        </entry>
+      </descriptors>
+      <name>JsonRecordSetWriter</name>
+      <persistsState>false</persistsState>
+      <properties>
+        <entry>
+          <key>Schema Write Strategy</key>
+          <value>full-schema-attribute</value>
+        </entry>
+        <entry>
+          <key>schema-access-strategy</key>
+          <value>inherit-record-schema</value>
+        </entry>
+        <entry>
+          <key>schema-registry</key>
+        </entry>
+        <entry>
+          <key>schema-name</key>
+          <value>${schema.name}</value>
+        </entry>
+        <entry>
+          <key>schema-text</key>
+          <value>${avro.schema}</value>
+        </entry>
+        <entry>
+          <key>Date Format</key>
+        </entry>
+        <entry>
+          <key>Time Format</key>
+        </entry>
+        <entry>
+          <key>Timestamp Format</key>
+        </entry>
+        <entry>
+          <key>Pretty Print JSON</key>
+          <value>true</value>
+        </entry>
+      </properties>
+      <state>ENABLED</state>
+      <type>org.apache.nifi.json.JsonRecordSetWriter</type>
+    </controllerServices>
+    <controllerServices>
+      <id>4dba731f-54a9-3a6f-0000-000000000000</id>
+      <parentGroupId>a639830c-0b19-37f0-0000-000000000000</parentGroupId>
+      <bundle>
+        <artifact>nifi-netflow-nar</artifact>
+        <group>com.simonellistonball.nifi.processors</group>
+        <version>0.0.1-SNAPSHOT</version>
+      </bundle>
+      <comments></comments>
+      <descriptors>
+        <entry>
+          <key>netflow-version</key>
+          <value>
+            <name>netflow-version</name>
+          </value>
+        </entry>
+      </descriptors>
+      <name>NetflowReader</name>
+      <persistsState>false</persistsState>
+      <properties>
+        <entry>
+          <key>netflow-version</key>
+          <value>any</value>
+        </entry>
+      </properties>
+      <state>ENABLED</state>
+      <type>org.apache.nifi.netflow.NetflowReader</type>
+    </controllerServices>
+    <processGroups>
+      <id>96e3d6ac-1417-3b26-0000-000000000000</id>
+      <parentGroupId>a639830c-0b19-37f0-0000-000000000000</parentGroupId>
+      <position>
+        <x>0.0</x>
+        <y>0.0</y>
+      </position>
+      <comments></comments>
+      <contents>
+        <connections>
+          <id>a98ef283-2c09-30d5-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+          <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+          <destination>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>5c46c220-967e-33e0-0000-000000000000</id>
+            <type>PROCESSOR</type>
+          </destination>
+          <flowFileExpiration>0 sec</flowFileExpiration>
+          <labelIndex>1</labelIndex>
+          <name></name>
+          <selectedRelationships>success</selectedRelationships>
+          <source>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>e3229cdd-9ae4-3ea5-0000-000000000000</id>
+            <type>PROCESSOR</type>
+          </source>
+          <zIndex>0</zIndex>
+        </connections>
+        <connections>
+          <id>6198bb8f-41bd-323f-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+          <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+          <destination>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>8dc35131-7416-31cf-0000-000000000000</id>
+            <type>FUNNEL</type>
+          </destination>
+          <flowFileExpiration>0 sec</flowFileExpiration>
+          <labelIndex>1</labelIndex>
+          <name></name>
+          <selectedRelationships>success</selectedRelationships>
+          <source>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>f6199870-a70e-3e68-0000-000000000000</id>
+            <type>PROCESSOR</type>
+          </source>
+          <zIndex>0</zIndex>
+        </connections>
+        <connections>
+          <id>66a02c4f-9428-3959-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+          <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+          <destination>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>8dc35131-7416-31cf-0000-000000000000</id>
+            <type>FUNNEL</type>
+          </destination>
+          <flowFileExpiration>0 sec</flowFileExpiration>
+          <labelIndex>1</labelIndex>
+          <name></name>
+          <selectedRelationships>split</selectedRelationships>
+          <source>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>5c46c220-967e-33e0-0000-000000000000</id>
+            <type>PROCESSOR</type>
+          </source>
+          <zIndex>0</zIndex>
+        </connections>
+        <connections>
+          <id>6a67371d-246d-3a12-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+          <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+          <destination>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>6507bd71-5117-325c-0000-000000000000</id>
+            <type>FUNNEL</type>
+          </destination>
+          <flowFileExpiration>0 sec</flowFileExpiration>
+          <labelIndex>1</labelIndex>
+          <name></name>
+          <selectedRelationships>parse.failure</selectedRelationships>
+          <source>
+            <groupId>96e3d6ac-1417-3b26-0000-000000000000</groupId>
+            <id>e3229cdd-9ae4-3ea5-0000-000000000000</id>
+            <type>PROCESSOR</type>
+          </source>
+          <zIndex>0</zIndex>
+        </connections>
+        <funnels>
+          <id>8dc35131-7416-31cf-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <position>
+            <x>812.0</x>
+            <y>803.0</y>
+          </position>
+        </funnels>
+        <funnels>
+          <id>6507bd71-5117-325c-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <position>
+            <x>1817.0</x>
+            <y>347.0</y>
+          </position>
+        </funnels>
+        <processors>
+          <id>e3229cdd-9ae4-3ea5-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <position>
+            <x>1204.0</x>
+            <y>310.0</y>
+          </position>
+          <bundle>
+            <artifact>nifi-standard-nar</artifact>
+            <group>org.apache.nifi</group>
+            <version>1.4.0</version>
+          </bundle>
+          <config>
+            <bulletinLevel>WARN</bulletinLevel>
+            <comments></comments>
+            <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+            <descriptors>
+              <entry>
+                <key>Local Network Interface</key>
+                <value>
+                  <name>Local Network Interface</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Port</key>
+                <value>
+                  <name>Port</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Receive Buffer Size</key>
+                <value>
+                  <name>Receive Buffer Size</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Max Size of Message Queue</key>
+                <value>
+                  <name>Max Size of Message Queue</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Max Size of Socket Buffer</key>
+                <value>
+                  <name>Max Size of Socket Buffer</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Character Set</key>
+                <value>
+                  <name>Character Set</name>
+                </value>
+              </entry>
+              <entry>
+                <key>poll-timeout</key>
+                <value>
+                  <name>poll-timeout</name>
+                </value>
+              </entry>
+              <entry>
+                <key>batch-size</key>
+                <value>
+                  <name>batch-size</name>
+                </value>
+              </entry>
+              <entry>
+                <key>record-reader</key>
+                <value>
+                  <identifiesControllerService>org.apache.nifi.serialization.RecordReaderFactory</identifiesControllerService>
+                  <name>record-reader</name>
+                </value>
+              </entry>
+              <entry>
+                <key>record-writer</key>
+                <value>
+                  <identifiesControllerService>org.apache.nifi.serialization.RecordSetWriterFactory</identifiesControllerService>
+                  <name>record-writer</name>
+                </value>
+              </entry>
+              <entry>
+                <key>sending-host</key>
+                <value>
+                  <name>sending-host</name>
+                </value>
+              </entry>
+              <entry>
+                <key>sending-host-port</key>
+                <value>
+                  <name>sending-host-port</name>
+                </value>
+              </entry>
+            </descriptors>
+            <executionNode>ALL</executionNode>
+            <lossTolerant>false</lossTolerant>
+            <penaltyDuration>30 sec</penaltyDuration>
+            <properties>
+              <entry>
+                <key>Local Network Interface</key>
+              </entry>
+              <entry>
+                <key>Port</key>
+                <value>5000</value>
+              </entry>
+              <entry>
+                <key>Receive Buffer Size</key>
+                <value>65507 B</value>
+              </entry>
+              <entry>
+                <key>Max Size of Message Queue</key>
+                <value>10000</value>
+              </entry>
+              <entry>
+                <key>Max Size of Socket Buffer</key>
+                <value>1 MB</value>
+              </entry>
+              <entry>
+                <key>Character Set</key>
+                <value>UTF-8</value>
+              </entry>
+              <entry>
+                <key>poll-timeout</key>
+                <value>50 ms</value>
+              </entry>
+              <entry>
+                <key>batch-size</key>
+                <value>1</value>
+              </entry>
+              <entry>
+                <key>record-reader</key>
+                <value>4dba731f-54a9-3a6f-0000-000000000000</value>
+              </entry>
+              <entry>
+                <key>record-writer</key>
+                <value>d852b6ce-9ce7-3fde-0000-000000000000</value>
+              </entry>
+              <entry>
+                <key>sending-host</key>
+              </entry>
+              <entry>
+                <key>sending-host-port</key>
+              </entry>
+            </properties>
+            <runDurationMillis>0</runDurationMillis>
+            <schedulingPeriod>0 sec</schedulingPeriod>
+            <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+            <yieldDuration>1 sec</yieldDuration>
+          </config>
+          <name>ListenUDPRecord(5000)</name>
+          <relationships>
+            <autoTerminate>false</autoTerminate>
+            <name>parse.failure</name>
+          </relationships>
+          <relationships>
+            <autoTerminate>false</autoTerminate>
+            <name>success</name>
+          </relationships>
+          <state>RUNNING</state>
+          <style></style>
+          <type>org.apache.nifi.processors.standard.ListenUDPRecord</type>
+        </processors>
+        <processors>
+          <id>f6199870-a70e-3e68-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <position>
+            <x>660.0</x>
+            <y>313.0</y>
+          </position>
+          <bundle>
+            <artifact>nifi-standard-nar</artifact>
+            <group>org.apache.nifi</group>
+            <version>1.4.0</version>
+          </bundle>
+          <config>
+            <bulletinLevel>WARN</bulletinLevel>
+            <comments></comments>
+            <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+            <descriptors>
+              <entry>
+                <key>Local Network Interface</key>
+                <value>
+                  <name>Local Network Interface</name>
+                </value>
+              </entry>
+              <entry>
+                <key>port</key>
+                <value>
+                  <name>port</name>
+                </value>
+              </entry>
+              <entry>
+                <key>max-size-socket-buffer</key>
+                <value>
+                  <name>max-size-socket-buffer</name>
+                </value>
+              </entry>
+              <entry>
+                <key>max-number-tcp-connections</key>
+                <value>
+                  <name>max-number-tcp-connections</name>
+                </value>
+              </entry>
+              <entry>
+                <key>read-timeout</key>
+                <value>
+                  <name>read-timeout</name>
+                </value>
+              </entry>
+              <entry>
+                <key>record-reader</key>
+                <value>
+                  <identifiesControllerService>org.apache.nifi.serialization.RecordReaderFactory</identifiesControllerService>
+                  <name>record-reader</name>
+                </value>
+              </entry>
+              <entry>
+                <key>record-writer</key>
+                <value>
+                  <identifiesControllerService>org.apache.nifi.serialization.RecordSetWriterFactory</identifiesControllerService>
+                  <name>record-writer</name>
+                </value>
+              </entry>
+              <entry>
+                <key>reader-error-handling-strategy</key>
+                <value>
+                  <name>reader-error-handling-strategy</name>
+                </value>
+              </entry>
+              <entry>
+                <key>record-batch-size</key>
+                <value>
+                  <name>record-batch-size</name>
+                </value>
+              </entry>
+              <entry>
+                <key>ssl-context-service</key>
+                <value>
+                  <identifiesControllerService>org.apache.nifi.ssl.RestrictedSSLContextService</identifiesControllerService>
+                  <name>ssl-context-service</name>
+                </value>
+              </entry>
+              <entry>
+                <key>client-auth</key>
+                <value>
+                  <name>client-auth</name>
+                </value>
+              </entry>
+            </descriptors>
+            <executionNode>ALL</executionNode>
+            <lossTolerant>false</lossTolerant>
+            <penaltyDuration>30 sec</penaltyDuration>
+            <properties>
+              <entry>
+                <key>Local Network Interface</key>
+              </entry>
+              <entry>
+                <key>port</key>
+                <value>5001</value>
+              </entry>
+              <entry>
+                <key>max-size-socket-buffer</key>
+                <value>1 MB</value>
+              </entry>
+              <entry>
+                <key>max-number-tcp-connections</key>
+                <value>2</value>
+              </entry>
+              <entry>
+                <key>read-timeout</key>
+                <value>10 seconds</value>
+              </entry>
+              <entry>
+                <key>record-reader</key>
+                <value>4dba731f-54a9-3a6f-0000-000000000000</value>
+              </entry>
+              <entry>
+                <key>record-writer</key>
+                <value>d852b6ce-9ce7-3fde-0000-000000000000</value>
+              </entry>
+              <entry>
+                <key>reader-error-handling-strategy</key>
+                <value>Transfer</value>
+              </entry>
+              <entry>
+                <key>record-batch-size</key>
+                <value>1000</value>
+              </entry>
+              <entry>
+                <key>ssl-context-service</key>
+              </entry>
+              <entry>
+                <key>client-auth</key>
+                <value>REQUIRED</value>
+              </entry>
+            </properties>
+            <runDurationMillis>0</runDurationMillis>
+            <schedulingPeriod>0 sec</schedulingPeriod>
+            <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+            <yieldDuration>1 sec</yieldDuration>
+          </config>
+          <name>ListenTCPRecord(5001)</name>
+          <relationships>
+            <autoTerminate>false</autoTerminate>
+            <name>success</name>
+          </relationships>
+          <state>RUNNING</state>
+          <style></style>
+          <type>org.apache.nifi.processors.standard.ListenTCPRecord</type>
+        </processors>
+        <processors>
+          <id>5c46c220-967e-33e0-0000-000000000000</id>
+          <parentGroupId>96e3d6ac-1417-3b26-0000-000000000000</parentGroupId>
+          <position>
+            <x>1194.0</x>
+            <y>532.0</y>
+          </position>
+          <bundle>
+            <artifact>nifi-standard-nar</artifact>
+            <group>org.apache.nifi</group>
+            <version>1.4.0</version>
+          </bundle>
+          <config>
+            <bulletinLevel>WARN</bulletinLevel>
+            <comments></comments>
+            <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+            <descriptors>
+              <entry>
+                <key>JsonPath Expression</key>
+                <value>
+                  <name>JsonPath Expression</name>
+                </value>
+              </entry>
+              <entry>
+                <key>Null Value Representation</key>
+                <value>
+                  <name>Null Value Representation</name>
+                </value>
+              </entry>
+            </descriptors>
+            <executionNode>ALL</executionNode>
+            <lossTolerant>false</lossTolerant>
+            <penaltyDuration>30 sec</penaltyDuration>
+            <properties>
+              <entry>
+                <key>JsonPath Expression</key>
+                <value>$.*</value>
+              </entry>
+              <entry>
+                <key>Null Value Representation</key>
+                <value>empty string</value>
+              </entry>
+            </properties>
+            <runDurationMillis>0</runDurationMillis>
+            <schedulingPeriod>0 sec</schedulingPeriod>
+            <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+            <yieldDuration>1 sec</yieldDuration>
+          </config>
+          <name>SplitJson</name>
+          <relationships>
+            <autoTerminate>true</autoTerminate>
+            <name>failure</name>
+          </relationships>
+          <relationships>
+            <autoTerminate>true</autoTerminate>
+            <name>original</name>
+          </relationships>
+          <relationships>
+            <autoTerminate>false</autoTerminate>
+            <name>split</name>
+          </relationships>
+          <state>RUNNING</state>
+          <style></style>
+          <type>org.apache.nifi.processors.standard.SplitJson</type>
+        </processors>
+      </contents>
+      <name>Netflow Sample</name>
+    </processGroups>
+  </snippet>
+  <timestamp>02/27/2018 17:17:57 GMT</timestamp>
+</template>

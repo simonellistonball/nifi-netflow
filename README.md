@@ -34,3 +34,11 @@ cp nifi-netflow-nar/target/nifi-netflow-nar-0.0.1.nar \
 ```
 
 copy the resulting nar from nifi-netflow-nar/target to your nifi custom library directory and restart nifi.
+
+## Example use
+
+The reader provides a record reader service which is intended to be used with the ListenUDPRecord processor to interpret NetFlow. 
+
+![Sample Flow](flow.png)
+
+The template included in the root of this repo provides an example, but may need some rewiring for your build.
