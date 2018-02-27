@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>com.simonellistonball.nifi.processors</groupId>
 		<artifactId>netflow-processors-bundle</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1</version>
 	</parent>
 
 	<artifactId>nifi-netflow-processors</artifactId>

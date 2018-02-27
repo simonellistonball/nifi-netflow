@@ -23,3 +23,14 @@ The bundle will contain NiFi processors to consume and Parse Netflow 9 including
 
 If you reeceive a packet which only consists of templates, which is reaonsably common, it will lead to the flow file being sent to parse.failure, since no actual flow records are emitted. Fixing this requires some upstream changes in the record reader api to allow flow files with no records to be ignored. 
 
+## Building 
+
+I build against NiFi 1.5.0, but 1.4.0 should work. This is my build command (note I keep a copy of NiFi lying around in home, and have added custom to the NiFi library paths)
+
+```
+mvn package && \
+cp nifi-netflow-nar/target/nifi-netflow-nar-0.0.1.nar \
+~/nifi-1.5.0-SNAPSHOT/custom/
+```
+
+copy the resulting nar from nifi-netflow-nar/target to your nifi custom library directory and restart nifi.
