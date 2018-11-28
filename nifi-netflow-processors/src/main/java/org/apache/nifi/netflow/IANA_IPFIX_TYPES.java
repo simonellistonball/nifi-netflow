@@ -111,8 +111,7 @@ public enum IANA_IPFIX_TYPES {
                     return String.valueOf(bytesToLong(dst, len > 0 ? len : bytes));
                 } else {
                     if (signed) {
-                        return String.valueOf(
-                                ((dst[0] & 0x8000) == 0x8000 ? -1 : 1) * bytesToLong(dst, len > 0 ? len : bytes));
+                        return String.valueOf(bytesToLong(dst, len > 0 ? len : bytes));
                     } else {
                         return String.valueOf(bytesToLong(dst, len > 0 ? len : bytes));
                     }
