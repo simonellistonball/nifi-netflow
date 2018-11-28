@@ -380,6 +380,7 @@ public class NetflowParser {
                     logger.debug(String.format("Custom length found %d of type %d",
                             new Object[] { fieldLength, item.type }));
                 }
+                if (fieldLength<0) {fieldLength=0;}
                 byte[] dst = new byte[fieldLength];
                 s.read(dst, 0, fieldLength);
                 bytesProcessed += fieldLength;
