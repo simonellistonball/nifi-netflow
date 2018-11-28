@@ -57,10 +57,12 @@ public enum IANA_IPFIX_TYPES {
 
     public static long bytesToLong(byte[] b, int c) {
         long result = 0;
+        if (c!=b.length) {c=b.length;}
+        if (b.length!=0) {
         for (int i = 0; i < c; i++) {
             result <<= 8;
             result |= (b[i] & 0xFF);
-        }
+        }}
         return result;
     }
 
